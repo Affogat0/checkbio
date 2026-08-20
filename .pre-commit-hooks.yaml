@@ -1,0 +1,6 @@
+- id: biolint
+  name: biolint
+  description: "Catch bioinformatics-specific mistakes (coordinate bugs, hallucinated Biopython/pysam API calls) before commit."
+  entry: biolint
+  language: python
+  types: [python]

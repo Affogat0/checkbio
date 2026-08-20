@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biolint"
+version = "0.1.0"
+description = "Static analysis for bioinformatics-specific mistakes in Python code — especially the kind AI coding assistants silently introduce."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Jun" }
+]
+keywords = ["bioinformatics", "linter", "static-analysis", "biopython", "pysam", "ai-code-review"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+[project.scripts]
+biolint = "biolint.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Affogat0/biolint"
+Issues = "https://github.com/Affogat0/biolint/issues"
+
+[tool.setuptools.packages.find]
+include = ["biolint*"]
