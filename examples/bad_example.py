@@ -1,7 +1,7 @@
 """
 Example file containing the kinds of mistakes AI coding assistants commonly
-introduce in bioinformatics scripts. Run `biolint examples/bad_example.py`
-to see biolint catch these.
+introduce in bioinformatics scripts. Run `checkbio examples/bad_example.py`
+to see checkbio catch these.
 """
 
 import subprocess

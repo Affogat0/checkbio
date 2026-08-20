@@ -1,4 +1,4 @@
-from biolint.checker import check_source
+from checkbio.checker import check_source
 
 
 def rule_ids(findings):

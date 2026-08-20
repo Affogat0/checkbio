@@ -1,5 +1,5 @@
-"""A clean file — should trigger zero biolint findings other than the
-unavoidable PYS002 reminder (fetch() always needs an index; biolint can't
+"""A clean file — should trigger zero checkbio findings other than the
+unavoidable PYS002 reminder (fetch() always needs an index; checkbio can't
 verify the guard actually runs before the call without real data-flow
 analysis, see the README's known limitations)."""
 

@@ -2,9 +2,9 @@
 Command-line entry point.
 
 Usage:
-    biolint script.py
-    biolint script1.py script2.py
-    biolint mypipeline/*.py
+    checkbio script.py
+    checkbio script1.py script2.py
+    checkbio mypipeline/*.py
 """
 
 import argparse
@@ -15,7 +15,7 @@ from .checker import check_file
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
-        prog="biolint",
+        prog="checkbio",
         description=(
             "Static analysis for bioinformatics-specific mistakes in "
             "Python code — especially the kind AI coding assistants "
@@ -49,10 +49,10 @@ def main(argv=None) -> int:
 
     if total_errors or total_warnings:
         print(
-            f"\nbiolint: {total_errors} error(s), {total_warnings} warning(s)"
+            f"\ncheckbio: {total_errors} error(s), {total_warnings} warning(s)"
         )
     else:
-        print("biolint: no issues found")
+        print("checkbio: no issues found")
 
     if total_errors > 0:
         return 1

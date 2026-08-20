@@ -1,11 +1,11 @@
-# biolint
+# checkbio
 
 A static analysis linter that catches **bioinformatics-specific mistakes**
 in Python code — especially the kind AI coding assistants (Claude, Codex,
 ChatGPT, Copilot, etc.) tend to silently introduce.
 
 It does **not** try to be a general-purpose linter. Use `flake8`/`pylint`/
-`ruff` for that. `biolint` only checks for domain-specific correctness
+`ruff` for that. `checkbio` only checks for domain-specific correctness
 issues that a general linter has no way of knowing about: genomic
 coordinate bugs, hallucinated or deprecated Biopython/pysam API usage, and
 file format mismatches.
@@ -18,13 +18,13 @@ domain-specific details wrong: mixing 0-based and 1-based coordinate
 systems, calling a Biopython API that was removed years ago, passing an
 invalid mode string to `pysam.AlignmentFile`. These bugs are usually
 silent — the code runs, sometimes even produces output, and just happens
-to be wrong. `biolint` exists to catch the specific patterns that keep
+to be wrong. `checkbio` exists to catch the specific patterns that keep
 showing up.
 
 ## Install
 
 ```bash
-pip install biolint
+pip install checkbio
 ```
 
 (Not yet published to PyPI — for now, install from source: see below.)
@@ -32,16 +32,16 @@ pip install biolint
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/biolint.git
-cd biolint
+git clone https://github.com/YOUR_USERNAME/checkbio.git
+cd checkbio
 pip install -e .
 ```
 
 ## Usage
 
 ```bash
-biolint script.py
-biolint pipeline/*.py
+checkbio script.py
+checkbio pipeline/*.py
 ```
 
 Example output:
@@ -60,7 +60,7 @@ examples/bad_example.py
   62:11 [TAB001] Merge key(s) ['position'] include a genomic position column but no chromosome column...
   68:4  [CLI001] Call to 'samtools' via subprocess does not verify the command succeeded...
 
-biolint: 3 error(s), 9 warning(s)
+checkbio: 3 error(s), 9 warning(s)
 ```
 
 ### As a pre-commit hook
@@ -69,10 +69,10 @@ Add to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: https://github.com/YOUR_USERNAME/biolint
+  - repo: https://github.com/YOUR_USERNAME/checkbio
     rev: v0.1.0
     hooks:
-      - id: biolint
+      - id: checkbio
 ```
 
 ## Rule families

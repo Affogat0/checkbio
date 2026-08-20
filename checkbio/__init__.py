@@ -1,5 +1,5 @@
 """
-biolint: a static analysis linter that catches common bioinformatics-specific
+checkbio: a static analysis linter that catches common bioinformatics-specific
 mistakes in Python code, especially the kind that AI coding assistants
 (Claude, Codex, ChatGPT, etc.) tend to silently introduce.
 

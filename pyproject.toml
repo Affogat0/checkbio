@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "biolint"
+name = "checkbio"
 version = "0.1.0"
 description = "Static analysis for bioinformatics-specific mistakes in Python code — especially the kind AI coding assistants silently introduce."
 readme = "README.md"
@@ -22,11 +22,11 @@ classifiers = [
 ]
 
 [project.scripts]
-biolint = "biolint.cli:main"
+checkbio = "checkbio.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/biolint"
-Issues = "https://github.com/YOUR_USERNAME/biolint/issues"
+Homepage = "https://github.com/YOUR_USERNAME/checkbio"
+Issues = "https://github.com/YOUR_USERNAME/checkbio/issues"
 
 [tool.setuptools.packages.find]
-include = ["biolint*"]
+include = ["checkbio*"]
