@@ -13,6 +13,7 @@ analysis, that would require real type/format tracking. The goal is to
 catch the common, recognizable patterns, not every possible bug.
 """
 
+import re
 import ast
 from . import Finding
 
@@ -21,6 +22,11 @@ ZERO_BASED_HINTS = {"bed", "pybed", "zero_based", "0based"}
 
 # Variable-name fragments that suggest a 1-based coordinate source.
 ONE_BASED_HINTS = {"vcf", "gff", "gtf", "sam", "one_based", "1based"}
+
+# Chromosome naming convention patterns (LOC003).
+_CHR_NUM = r"(?:[1-9]|1[0-9]|2[0-2])"
+PREFIXED_CHROM = re.compile(rf"^chr(?:{_CHR_NUM}|X|Y|M|MT)$")
+BARE_CHROM = re.compile(rf"^(?:{_CHR_NUM}|X|Y|MT)$")
 
 
 def _name_hints(name: str, hints: set) -> bool:
@@ -38,7 +44,7 @@ class _Visitor(ast.NodeVisitor):
         self.findings: list[Finding] = []
 
     def visit_Compare(self, node: ast.Compare):
-        # BL001: comparing/combining a 0-based-named variable directly
+        # LOC001: comparing/combining a 0-based-named variable directly
         # against a 1-based-named variable with no visible +/-1 adjustment
         # anywhere in the comparison expression.
         names = _collect_names(node)
@@ -53,7 +59,7 @@ class _Visitor(ast.NodeVisitor):
                 Finding(
                     line=node.lineno,
                     col=node.col_offset,
-                    rule_id="BL001",
+                    rule_id="LOC001",
                     message=(
                         "Comparing a 0-based coordinate (BED-style) directly "
                         "against a 1-based coordinate (VCF/GFF/SAM-style) "
@@ -65,7 +71,7 @@ class _Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Subscript(self, node: ast.Subscript):
-        # BL002: slicing a sequence using a variable that looks like a
+        # LOC002: slicing a sequence using a variable that looks like a
         # genomic "start"/"end" position, with no nearby comment
         # indicating which coordinate convention is being used.
         slice_node = node.slice
@@ -86,7 +92,7 @@ class _Visitor(ast.NodeVisitor):
                     Finding(
                         line=node.lineno,
                         col=node.col_offset,
-                        rule_id="BL002",
+                        rule_id="LOC002",
                         message=(
                             f"Slicing with genomic-position-like variable(s) "
                             f"{flagged} — confirm whether this position is "
@@ -100,7 +106,45 @@ class _Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
+def _check_chromosome_naming(tree: ast.AST) -> list:
+    # LOC003: a file that uses both "chr1"-style and "1"-style chromosome
+    # names is very likely about to fail a join/comparison between two
+    # data sources with different naming conventions (e.g. UCSC "chr1" vs
+    # Ensembl "1", or "chrM" vs "MT"). This is a file-level heuristic —
+    # exact line numbers for both forms are reported so a human can trace
+    # where each convention is coming from.
+    prefixed_hits = []
+    bare_hits = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if PREFIXED_CHROM.fullmatch(node.value):
+                prefixed_hits.append((node.value, node.lineno, node.col_offset))
+            elif BARE_CHROM.fullmatch(node.value):
+                bare_hits.append((node.value, node.lineno, node.col_offset))
+
+    if prefixed_hits and bare_hits:
+        example_prefixed, pline, pcol = prefixed_hits[0]
+        example_bare, bline, bcol = bare_hits[0]
+        return [
+            Finding(
+                line=pline,
+                col=pcol,
+                rule_id="LOC003",
+                message=(
+                    f"Found chromosome name '{example_prefixed}' (line "
+                    f"{pline}) and '{example_bare}' (line {bline}) in the "
+                    "same file — these use different chromosome naming "
+                    "conventions (chr-prefixed vs. bare, or chrM vs. MT). "
+                    "Comparing/joining data across these without "
+                    "normalizing first will silently drop or mismatch "
+                    "every record on the affected chromosome."
+                ),
+            )
+        ]
+    return []
+
+
 def check(tree: ast.AST, source_lines: list) -> list:
     visitor = _Visitor()
     visitor.visit(tree)
-    return visitor.findings
+    return visitor.findings + _check_chromosome_naming(tree)

@@ -37,7 +37,7 @@ class _Visitor(ast.NodeVisitor):
                 Finding(
                     line=node.lineno,
                     col=node.col_offset,
-                    rule_id="BL010",
+                    rule_id="BIO001",
                     message=(
                         f"'{module}' was removed in Biopython 1.78 (2020). "
                         "This import will fail on any current Biopython "
@@ -50,7 +50,7 @@ class _Visitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
-        # BL011: SeqIO.parse()/SeqIO.read() called with a format string
+        # BIO002: SeqIO.parse()/SeqIO.read() called with a format string
         # that isn't a real Biopython format.
         func = node.func
         is_seqio_call = (
@@ -74,7 +74,7 @@ class _Visitor(ast.NodeVisitor):
                         Finding(
                             line=node.lineno,
                             col=node.col_offset,
-                            rule_id="BL011",
+                            rule_id="BIO002",
                             message=(
                                 f"'{fmt}' is not a recognized Bio.SeqIO/"
                                 "AlignIO format string. Check for a typo or "

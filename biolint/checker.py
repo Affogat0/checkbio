@@ -1,9 +1,9 @@
 import ast
 from pathlib import Path
 
-from .rules import coordinates, biopython_rules, pysam_rules
+from .rules import loc_rules, bio_rules, pys_rules, ref_rules, tab_rules, cli_rules
 
-RULE_MODULES = [coordinates, biopython_rules, pysam_rules]
+RULE_MODULES = [loc_rules, bio_rules, pys_rules, ref_rules, tab_rules, cli_rules]
 
 
 def check_source(source: str, filename: str = "<string>") -> list:
@@ -17,7 +17,7 @@ def check_source(source: str, filename: str = "<string>") -> list:
             Finding(
                 line=e.lineno or 0,
                 col=e.offset or 0,
-                rule_id="BL000",
+                rule_id="REP000",
                 message=f"Could not parse file: {e.msg}",
                 severity="error",
             )

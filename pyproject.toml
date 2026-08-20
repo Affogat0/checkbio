@@ -25,8 +25,8 @@ classifiers = [
 biolint = "biolint.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Affogat0/biolint"
-Issues = "https://github.com/Affogat0/biolint/issues"
+Homepage = "https://github.com/YOUR_USERNAME/biolint"
+Issues = "https://github.com/YOUR_USERNAME/biolint/issues"
 
 [tool.setuptools.packages.find]
 include = ["biolint*"]

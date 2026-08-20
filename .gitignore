@@ -1,3 +1,13 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Python
 __pycache__/
 *.pyc
 *.egg-info/
@@ -6,3 +16,5 @@ dist/
 .pytest_cache/
 .venv/
 venv/
+.mypy_cache/
+.ruff_cache/
