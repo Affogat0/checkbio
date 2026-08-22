@@ -25,8 +25,8 @@ classifiers = [
 checkbio = "checkbio.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/checkbio"
-Issues = "https://github.com/YOUR_USERNAME/checkbio/issues"
+Homepage = "https://github.com/Affogat0/checkbio"
+Issues = "https://github.com/Affogat0/checkbio/issues"
 
 [tool.setuptools.packages.find]
 include = ["checkbio*"]

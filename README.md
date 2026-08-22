@@ -27,12 +27,10 @@ showing up.
 pip install checkbio
 ```
 
-(Not yet published to PyPI — for now, install from source: see below.)
-
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/checkbio.git
+git clone https://github.com/Affogat0/checkbio.git
 cd checkbio
 pip install -e .
 ```
@@ -69,7 +67,7 @@ Add to your `.pre-commit-config.yaml`:
 
 ```yaml
 repos:
-  - repo: https://github.com/YOUR_USERNAME/checkbio
+  - repo: https://github.com/Affogat0/checkbio
     rev: v0.1.0
     hooks:
       - id: checkbio
