@@ -8,10 +8,25 @@ every chromosome has a "position 100000"). A pandas merge has no domain
 knowledge that a genomic position is only meaningful alongside a
 chromosome; it will happily join on position alone and produce output that
 looks entirely plausible.
+
+TAB001 only fires once the provenance tracker (checkbio.provenance)
+confirms the merge is actually a pandas operation — either `pd.merge(...)`/
+`pandas.merge(...)` (resolved through import aliases), or `<name>.merge(...)`
+where `<name>`'s local provenance traces back to a DataFrame constructor —
+rather than matching on any object that happens to have a `.merge()`
+method. If a `.merge()` receiver's origin is untraceable in its local
+scope (e.g. it's a function parameter), the rule stays silent rather than
+firing with a hedge, the same policy PYS003 uses for the same reason.
 """
 
 import ast
 from . import Finding
+from ..provenance import (
+    build_parent_map,
+    build_provenance,
+    enclosing_scope,
+    resolve_import_aliases,
+)
 
 # Column-name fragments that indicate a genomic position, on their own.
 POSITION_HINTS = {"pos", "position", "start", "end", "coord", "coordinate"}
@@ -38,17 +53,38 @@ def _has_hint(values: list, hints: set) -> bool:
 
 
 class _Visitor(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, module_tree: ast.AST, parents: dict, aliases: dict):
         self.findings: list[Finding] = []
+        self._module_tree = module_tree
+        self._parents = parents
+        self._aliases = aliases
+        self._provenance_cache: dict = {}
+
+    def _provenance_for(self, node: ast.AST):
+        scope = enclosing_scope(node, self._parents, self._module_tree)
+        key = id(scope)
+        if key not in self._provenance_cache:
+            self._provenance_cache[key] = build_provenance(scope, self._module_tree)
+        return self._provenance_cache[key]
+
+    def _is_confirmed_dataframe_merge(self, node: ast.Call) -> bool:
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "merge"):
+            return False
+        receiver = func.value
+        if not isinstance(receiver, ast.Name):
+            return False
+        # Module-level call form: pd.merge(df1, df2, ...) / pandas.merge(...)
+        if self._aliases.get(receiver.id, receiver.id) == "pandas":
+            return True
+        # Method-call form: <name>.merge(...) — confirm <name> is a DataFrame.
+        return self._provenance_for(node).type_of(receiver.id, node.lineno) == "pandas.DataFrame"
 
     def visit_Call(self, node: ast.Call):
         # TAB001: df.merge(other, on=<position-only key>) — flags merges
         # keyed on a position-like column with no accompanying
         # chromosome-like column, on any of on=/left_on=/right_on=.
-        func = node.func
-        is_merge_call = isinstance(func, ast.Attribute) and func.attr == "merge"
-
-        if is_merge_call:
+        if self._is_confirmed_dataframe_merge(node):
             key_values = []
             for kw in node.keywords:
                 if kw.arg in {"on", "left_on", "right_on"}:
@@ -80,6 +116,8 @@ class _Visitor(ast.NodeVisitor):
 
 
 def check(tree: ast.AST, source_lines: list) -> list:
-    visitor = _Visitor()
+    parents = build_parent_map(tree)
+    aliases = resolve_import_aliases(tree)
+    visitor = _Visitor(tree, parents, aliases)
     visitor.visit(tree)
     return visitor.findings

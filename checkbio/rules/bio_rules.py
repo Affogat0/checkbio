@@ -19,10 +19,36 @@ REMOVED_MODULES = {"Bio.Alphabet"}
 # common ones). Anything not in this set is flagged for a human to check,
 # since it may be a hallucinated or misspelled format name.
 VALID_SEQIO_FORMATS = {
+    # Bio.SeqIO formats
     "fasta", "fasta-2line", "fastq", "fastq-sanger", "fastq-solexa",
     "fastq-illumina", "genbank", "gb", "embl", "imgt", "phd", "sff",
     "sff-trim", "qual", "tab", "clustal", "nexus", "phylip", "stockholm",
     "swiss", "uniprot-xml", "seqxml", "abi", "abi-trim", "ig", "pir",
+    "ace", "cif-atom", "cif-seqres", "gck", "nib", "pdb-atom",
+    "pdb-seqres", "snapgene", "twobit", "xdna",
+    # Bio.AlignIO-only formats (parse()/read() are shared between the two
+    # modules, so these need to be recognized too)
+    "emboss", "fasta-m10", "maf", "mauve", "msf", "phylip-sequential",
+    "phylip-relaxed",
+}
+
+# Positions/keywords where each SeqIO/AlignIO function actually expects a
+# format string. parse()/read() take (handle, format, ...) — format at
+# index 1. write() takes (sequences, handle, format) — format at index 2,
+# not 1. convert() takes (in_file, in_format, out_file, out_format) — two
+# separate format strings, at index 1 and index 3, under distinct keyword
+# names (in_format=/out_format=, not format=).
+FORMAT_ARG_POSITIONS = {
+    "parse": [1],
+    "read": [1],
+    "write": [2],
+    "convert": [1, 3],
+}
+FORMAT_KEYWORD_NAMES = {
+    "parse": {"format"},
+    "read": {"format"},
+    "write": {"format"},
+    "convert": {"in_format", "out_format"},
 }
 
 
@@ -60,14 +86,21 @@ class _Visitor(ast.NodeVisitor):
             and func.value.id in {"SeqIO", "AlignIO"}
         )
         if is_seqio_call:
-            # format is usually the 2nd positional arg, or a "format=" kwarg
-            fmt_node = None
-            if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
-                fmt_node = node.args[1]
+            # Which argument position(s)/keyword(s) actually hold a format
+            # string depends on which function this is — write()/convert()
+            # don't put it at the same spot as parse()/read().
+            fmt_nodes = []
+            for idx in FORMAT_ARG_POSITIONS.get(func.attr, []):
+                if len(node.args) > idx and isinstance(node.args[idx], ast.Constant):
+                    fmt_nodes.append(node.args[idx])
+            kw_names = FORMAT_KEYWORD_NAMES.get(func.attr, {"format"})
             for kw in node.keywords:
-                if kw.arg == "format" and isinstance(kw.value, ast.Constant):
-                    fmt_node = kw.value
-            if fmt_node is not None and isinstance(fmt_node.value, str):
+                if kw.arg in kw_names and isinstance(kw.value, ast.Constant):
+                    fmt_nodes.append(kw.value)
+
+            for fmt_node in fmt_nodes:
+                if not isinstance(fmt_node.value, str):
+                    continue
                 fmt = fmt_node.value.lower()
                 if fmt not in VALID_SEQIO_FORMATS:
                     self.findings.append(

@@ -1,9 +1,5 @@
-"""A clean file — should trigger zero checkbio findings other than the
-unavoidable PYS002 reminder (fetch() always needs an index; checkbio can't
-verify the guard actually runs before the call without real data-flow
-analysis, see the README's known limitations)."""
+"""A clean file — should trigger zero checkbio findings."""
 
-import subprocess
 from Bio import SeqIO
 import pysam
 import os
@@ -36,9 +32,3 @@ def get_coverage_from_vcf_pos(bam_path, chrom, vcf_pos, end):
 
 def merge_variant_tables(df1, df2):
     return df1.merge(df2, on=["chrom", "position"])
-
-
-def sort_bam(bam_path):
-    subprocess.run(
-        ["samtools", "sort", bam_path, "-o", "sorted.bam"], check=True
-    )

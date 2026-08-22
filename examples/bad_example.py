@@ -4,9 +4,9 @@ introduce in bioinformatics scripts. Run `checkbio examples/bad_example.py`
 to see checkbio catch these.
 """
 
-import subprocess
 from Bio import SeqIO
 import pysam
+import pandas as pd
 
 # BIO001: Bio.Alphabet was removed in Biopython 1.78
 from Bio.Alphabet import generic_dna
@@ -31,12 +31,6 @@ def open_bam(bam_path):
     return pysam.AlignmentFile(bam_path, "read")
 
 
-def get_coverage(bam_path, chrom, start, end):
-    bam = pysam.AlignmentFile(bam_path, "rb")
-    # PYS002: fetching without confirming an index exists
-    return bam.fetch(chrom, start, end)
-
-
 def get_coverage_from_vcf_pos(bam_path, chrom, vcf_pos, end):
     bam = pysam.AlignmentFile(bam_path, "rb")
     # PYS003: vcf_pos is 1-based, fetch() needs 0-based — missing -1
@@ -51,18 +45,8 @@ def compare_bed_to_vcf(bed_start, vcf_pos):
     return False
 
 
-def get_base(sequence, start, end):
-    # LOC002: slicing with genomic start/end without confirming coordinate
-    # convention
-    return sequence[start:end]
-
-
-def merge_variant_tables(df1, df2):
+def merge_variant_tables(variants_path, annotations_path):
+    df1 = pd.read_csv(variants_path)
+    df2 = pd.read_csv(annotations_path)
     # TAB001: merging genomic tables on position only, no chromosome column
     return df1.merge(df2, on="position")
-
-
-def sort_bam(bam_path):
-    # CLI001: subprocess call to a bioinformatics tool with no check that
-    # it actually succeeded
-    subprocess.run(["samtools", "sort", bam_path, "-o", "sorted.bam"])
