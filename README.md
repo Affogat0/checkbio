@@ -60,18 +60,15 @@ checkbio: 3 error(s), 5 warning(s)
 
 ### As a pre-commit hook
 
-Add to your `.pre-commit-config.yaml`, pinned to a released tag (no tag has
-been cut under the `checkbio` name yet — the `v0.1.0`/`v0.2.0` tags in this
-repo's history predate the project's rename from `biolint` and point at a
-different package, so don't use them):
+Add to your `.pre-commit-config.yaml` (note: the `v0.1.0`/`v0.2.0` tags in this repo's history predate the project's rename from `biolint` and point at a different package — use `v0.3.0` or later):
 
-```yaml
+'''
 repos:
   - repo: https://github.com/Affogat0/checkbio
-    rev: <tag>  # e.g. v0.1.0 once one is cut under the checkbio name
+    rev: v0.3.0
     hooks:
       - id: checkbio
-```
+'''
 
 ## Rule families
 
